@@ -1,50 +1,73 @@
-import { createContext, useState, useContext } from "react";
-
+import React, { createContext, useContext, useReducer } from "react";
 import "./App.css";
 
-const ThemeContext = createContext();
+// Step 1: Create a context
+const CounterContext = createContext();
 
-const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
+// Step 2: Create a reducer function
+const counterReducer = (state, action) => {
+  switch (action.type) {
+    case "INCREMENT":
+      return { count: state.count + 1 };
+    case "DECREMENT":
+      return { count: state.count - 1 };
+    default:
+      return state;
+  }
+};
 
-  const toggleTheme = () => {
-    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
-  };
+// Step 3: Create a provider component
+const CounterProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(counterReducer, { count: 0 });
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <CounterContext.Provider value={{ state, dispatch }}>
       {children}
-    </ThemeContext.Provider>
+    </CounterContext.Provider>
   );
 };
 
-const ThemeConsumerComponent = () => {
-  const { theme, toggleTheme } = useContext(ThemeContext);
+// Step 4: Create a consumer component (or use useContext hook)
+const CounterDisplay = () => {
+  const { state } = useContext(CounterContext);
 
   return (
-    <div
-      style={{
-        background: theme === "light" ? "#fff" : "#333",
-        color: theme === "light" ? "#333" : "#fff",
-        padding: "20px",
-      }}
-    >
-      <p>Current Theme: {theme}</p>
-      <button onClick={toggleTheme}>Toggle Theme</button>
+    <div>
+      <p>Count: {state.count}</p>
     </div>
   );
 };
 
+// Step 5: Create buttons to dispatch actions
+const CounterButtons = () => {
+  const { dispatch } = useContext(CounterContext);
+
+  const handleIncrement = () => {
+    dispatch({ type: "INCREMENT" });
+  };
+
+  const handleDecrement = () => {
+    dispatch({ type: "DECREMENT" });
+  };
+
+  return (
+    <div>
+      <button onClick={handleIncrement}>Increment</button>
+      <button onClick={handleDecrement}>Decrement</button>
+    </div>
+  );
+};
+
+// Step 6: Use the provider to wrap your application
 function App() {
   return (
-    <>
-      <ThemeProvider>
-        <div>
-          <h1>Theme App</h1>
-          <ThemeConsumerComponent />
-        </div>
-      </ThemeProvider>
-    </>
+    <CounterProvider>
+      <div className="App">
+        <h1>Counter App</h1>
+        <CounterDisplay />
+        <CounterButtons />
+      </div>
+    </CounterProvider>
   );
 }
 
